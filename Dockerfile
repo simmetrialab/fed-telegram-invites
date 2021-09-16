@@ -5,5 +5,5 @@ COPY . .
 RUN pip install pipenv
 RUN pipenv install --system --deploy --ignore-pipfile
 
-CMD ["main.py"]
-ENTRYPOINT ["python3"]
+RUN crontab crontab
+CMD ["crond", "-f"]
