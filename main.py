@@ -14,9 +14,6 @@ api_hash = os.environ['TELEGRAM_API_HASH'];
 airtable_api_key = os.environ['AIRTABLE_API_KEY'];
 airtable_table_id = os.environ['AIRTABLE_TABLE_ID'];
 
-client = TelegramClient('FEDChallange', api_id, api_hash)
-table = Table(airtable_api_key, airtable_table_id, 'Invites')
-
 loop = asyncio.get_event_loop()
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -58,17 +55,18 @@ def main():
     logging.info('Job done!')
 
 if __name__ == "__main__":
+    try:
+        with open('FEDChallange.session') as f:
+            logging.info('Telegram session file present.')
+    except IOError:
+        logging.error("Missing Telegram session file")
+        exit()
+
+    client = TelegramClient('FEDChallange', api_id, api_hash)
+    table = Table(airtable_api_key, airtable_table_id, 'Invites')
+
     with client:
         scheduler = BlockingScheduler()
-        scheduler.add_job(main, 'interval', minutes=5)
+        scheduler.add_job(main, 'interval', seconds=5)
         scheduler.start()
         logging.info("Scheduler started")
-
-        try:
-            # This is here to simulate application activity (which keeps the main thread alive).
-            while True:
-                time.sleep(2)
-        except (KeyboardInterrupt, SystemExit):
-            # Not strictly necessary if daemonic mode is enabled but should be done if possible
-            logging.exception("Service shutdown")
-            scheduler.shutdown()
