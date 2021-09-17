@@ -27,7 +27,7 @@ docker build -t fed-telegram-invites .
 
 #### Run the docker image
 ```sh
-docker run --env-file .env  fed-telegram-invites:latest
+docker run -d --env-file .env  fed-telegram-invites:latest
 ```
 
 ## Development
