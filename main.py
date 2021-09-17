@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+
+import os
+import time
 import asyncio
+import logging
 from telethon import TelegramClient
 from pyairtable import Table
 from pyairtable.formulas import match
-import os
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 api_id = os.environ['TELEGRAM_API_ID'];
 api_hash = os.environ['TELEGRAM_API_HASH'];
@@ -14,19 +19,21 @@ table = Table(airtable_api_key, airtable_table_id, 'Invites')
 
 loop = asyncio.get_event_loop()
 
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+
 async def get_telegram_members():
-    print('Retrieve channel members...')
+    logging.info("Retrieve channel members...")
     users = await client.get_participants('@frontend_daily')
     return users
 
 def get_pending_invites():
-    print('Retrive pending invites...')
+    logging.info('Retrive pending invites...')
     formula = match({ "inviteStatus": "Pending" })
     records = table.all(fields=['invitedID'], formula=formula)
     return list(records)
 
 def find_targets(pending_invites, members_ids):
-    print('Finding joined invites...')
+    logging.info('Finding joined invites...')
     targets = []
     for invite in pending_invites:
         invited_id = invite.get('fields', {}).get('invitedID')
@@ -35,7 +42,7 @@ def find_targets(pending_invites, members_ids):
     return targets
 
 def update_targets_status(targets):
-    print('Updating invites status...')
+    logging.info('Updating invites status...')
     for target in targets:
         table.update(target['id'], { "inviteStatus": "Joined" })
 
@@ -45,11 +52,23 @@ def main():
     pending_invites = get_pending_invites()
     targets = find_targets(pending_invites=pending_invites, members_ids=members_ids)
     if (len(targets) == 0):
-        print('No joined invites founded!')
+        logging.info('No joined invites founded!')
     else:
         update_targets_status(targets=targets)
-    print("Done")
+    logging.info('Job done!')
 
 if __name__ == "__main__":
     with client:
-        main()
+        scheduler = BlockingScheduler()
+        scheduler.add_job(main, 'interval', minutes=5)
+        scheduler.start()
+        logging.info("Scheduler started")
+
+        try:
+            # This is here to simulate application activity (which keeps the main thread alive).
+            while True:
+                time.sleep(2)
+        except (KeyboardInterrupt, SystemExit):
+            # Not strictly necessary if daemonic mode is enabled but should be done if possible
+            logging.exception("Service shutdown")
+            scheduler.shutdown()

@@ -8,6 +8,7 @@ flask = "*"
 telethon = "*"
 gunicorn = "*"
 pyairtable = "*"
+apscheduler = "*"
 
 [dev-packages]
 
