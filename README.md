@@ -2,7 +2,7 @@
 
 ## Introduction
 We use Airtable CMS to track the invitations for FED Telegram channel.
-If an invited user joined the channel we have to update the status of invitation on Airtable.
+If an invited user joined the channel we have to update the invitation status on Airtable.
 
 This is a tiny python script to automaticaly check if some pending invites are joined in FED Telegram channel.
 If a pending invitation has joined the Telegram group we update the status to "Joined" on Airtable.
