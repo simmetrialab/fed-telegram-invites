@@ -67,6 +67,6 @@ if __name__ == "__main__":
 
     with client:
         scheduler = BlockingScheduler()
-        scheduler.add_job(main, 'interval', seconds=5)
+        scheduler.add_job(main, 'interval', minutes=5)
         scheduler.start()
         logging.info("Scheduler started")
